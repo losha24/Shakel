@@ -18,6 +18,7 @@ nav { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; paddin
 button { padding: 10px 18px; border: none; border-radius: 10px; background: linear-gradient(45deg,#43a047,#2e7d32); color: white; cursor: pointer; transition: 0.2s; font-family: inherit; font-weight: 600; display:flex; align-items:center; gap:5px;}
 button.red { background: linear-gradient(45deg,#e53935,#c62828); }
 button.blue { background: linear-gradient(45deg,#1e88e5,#1565c0); }
+button.gray { background: linear-gradient(45deg,#757575,#424242); }
 button:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
 
 .section { display: none; padding: 20px; max-width: 900px; margin: 0 auto; }
@@ -56,6 +57,7 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
     <button onclick="showSection('loan_section')">💳 הלוואה</button>
     <button onclick="showSection('mortgage_section')">🏠 משכנתא</button>
     <button onclick="toggleDark()" class="red">🌙 מצב כהה</button>
+    <button onclick="resetAll()" class="gray">🧹 איפוס מהיר</button>
     <button id="installBtn" class="blue">⬇️ התקן אפליקציה</button>
 </nav>
 
@@ -63,7 +65,7 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
 <div id="dashboard" class="section active">
     <div class="card">
         <h3>סיכום תקציב</h3>
-        <div id="dash_stats"></div>
+        <div id="dash_stats" style="font-size: 18px; font-weight: bold;"></div>
     </div>
 </div>
 
@@ -237,23 +239,38 @@ function calcM(){
             h+=`<tr><td>${m}</td><td>${pay.toFixed(0)}</td><td>${intr.toFixed(0)}</td><td>${prn.toFixed(0)}</td><td>${Math.max(0,bal).toFixed(0)}</td></tr>`;
             if(bal<=0) break;
         }
-        html += `<h4>מסלול ${i}</h4>` + h + "</table><br>";
+        html += `<h4>מסלול ${i}</h4>` + h + "<br>";
     }
     m_res.innerHTML=html;
     updateDash();
 }
 
-/* ----------- דשבורד ----------- */
+/* ----------- דשבורד עם צבע התראה ----------- */
 function updateDash(){
     const totalInc=incomes.reduce((a,b)=>a+b.val,0);
     const totalExp=expenses.reduce((a,b)=>a+b.val,0);
     const totalDebt=loanMonthly+mortMonthly;
     const avail=totalInc-totalExp-totalDebt;
-    document.getElementById('dash_stats').innerHTML=
+    const dashEl=document.getElementById('dash_stats');
+    dashEl.innerHTML=
         `הכנסות: ${totalInc.toLocaleString()} ₪<br>
          הוצאות: ${totalExp.toLocaleString()} ₪<br>
          חובות: ${totalDebt.toLocaleString()} ₪<br>
          <strong>פנוי: ${avail.toLocaleString()} ₪</strong>`;
+    dashEl.style.color=avail>0?'green':'red';
+}
+
+/* ----------- איפוס מהיר ----------- */
+function resetAll(){
+    if(!confirm("האם אתה בטוח שברצונך לאפס את כל הנתונים?")) return;
+    incomes=[]; expenses=[];
+    l_amt.value=""; l_rt.value=""; l_yrs.value="";
+    m_a1.value=""; m_r1.value=""; m_y1.value="";
+    m_a2.value=""; m_r2.value=""; m_y2.value="";
+    m_a3.value=""; m_r3.value=""; m_y3.value="";
+    refreshTables();
+    updateDash();
+    localStorage.removeItem("financeData");
 }
 
 /* ----------- שמירה מקומית ----------- */
