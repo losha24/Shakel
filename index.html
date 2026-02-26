@@ -14,8 +14,7 @@
 
 body { margin: 0; font-family: 'Assistant', sans-serif; background: #f4f7f6; color: #333; transition: 0.3s; min-height: 100vh; }
 
-/* עיצוב הכותרת והלוגו */
-header { padding: 20px 20px 10px 20px; text-align: center; font-size: 32px; font-weight: 700; color: #1b5e20; }
+header { padding: 20px 20px 5px 20px; text-align: center; font-size: 32px; font-weight: 700; color: #1b5e20; }
 .logo-container { display: flex; justify-content: center; padding-bottom: 20px; }
 .logo-container img { width: 80px; height: 80px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
@@ -34,8 +33,8 @@ button:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.
 .section { display: none; padding: 20px; max-width: 900px; margin: 0 auto; }
 .section.active { display: block; }
 .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
-input { width: 100%; padding: 10px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+input { width: 100%; padding: 10px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
 .table-container { max-height: 400px; overflow-y: auto; margin-top: 15px; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td { border-bottom: 1px solid #eee; padding: 8px; text-align: center; }
@@ -46,7 +45,6 @@ th { background: #f8f9fa; position: sticky; top: 0; }
 .dark input { background: #333; color: #eee; border-color: #444; }
 .dark table { background: #252525; color: #eee; }
 .dark th { background: #333; color: #fff; }
-.dark td { color: #eee; }
 .dark nav { background: #252525; }
 
 .edit-btn { background: #ffa000; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; margin-left: 3px; }
@@ -58,10 +56,7 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
 <body>
 
 <header>שקל לשקל</header>
-
-<div class="logo-container">
-    <img src="icon-192.png" alt="לוגו שקל לשקל">
-</div>
+<div class="logo-container"><img src="icon-192.png" alt="לוגו שקל לשקל"></div>
 
 <nav>
     <button onclick="showSection('dashboard')">📊 מצב אישי</button>
@@ -76,7 +71,7 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
 <div id="dashboard" class="section active">
     <div class="card">
         <h3>סיכום תקציב חודשי</h3>
-        <div id="dash_stats" style="font-size: 18px; font-weight: bold; line-height: 1.8;"></div>
+        <div id="dash_stats" style="font-size: 20px; font-weight: bold; line-height: 2;"></div>
     </div>
 </div>
 
@@ -105,9 +100,9 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
     <div class="card">
         <h3>מחשבון הלוואה</h3>
         <div class="grid">
-            <div><label>סכום ההלוואה</label><input type="number" id="l_amt" oninput="calcLoan()"></div>
-            <div><label>ריבית %</label><input type="number" id="l_rt" oninput="calcLoan()"></div>
-            <div><label>שנים</label><input type="number" id="l_yrs" oninput="calcLoan()"></div>
+            <div><label>סכום</label><input type="number" id="l_amt" oninput="calcLoan(); save();"></div>
+            <div><label>ריבית %</label><input type="number" id="l_rt" oninput="calcLoan(); save();"></div>
+            <div><label>שנים</label><input type="number" id="l_yrs" oninput="calcLoan(); save();"></div>
         </div>
         <div id="l_res" style="font-size: 20px; color: #d32f2f; margin: 15px 0; font-weight: bold;"></div>
         <div id="l_tbl_area"></div>
@@ -120,23 +115,23 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
         <div id="m_tracks">
             <div class="card"><h4>מסלול 1</h4>
                 <div class="grid">
-                    <input type="number" id="m_a1" placeholder="סכום" oninput="calcM()">
-                    <input type="number" id="m_r1" placeholder="ריבית %" oninput="calcM()">
-                    <input type="number" id="m_y1" placeholder="שנים" oninput="calcM()">
+                    <input type="number" id="m_a1" placeholder="סכום" oninput="calcM(); save();">
+                    <input type="number" id="m_r1" placeholder="ריבית %" oninput="calcM(); save();">
+                    <input type="number" id="m_y1" placeholder="שנים" oninput="calcM(); save();">
                 </div>
             </div>
             <div class="card"><h4>מסלול 2</h4>
                 <div class="grid">
-                    <input type="number" id="m_a2" placeholder="סכום" oninput="calcM()">
-                    <input type="number" id="m_r2" placeholder="ריבית %" oninput="calcM()">
-                    <input type="number" id="m_y2" placeholder="שנים" oninput="calcM()">
+                    <input type="number" id="m_a2" placeholder="סכום" oninput="calcM(); save();">
+                    <input type="number" id="m_r2" placeholder="ריבית %" oninput="calcM(); save();">
+                    <input type="number" id="m_y2" placeholder="שנים" oninput="calcM(); save();">
                 </div>
             </div>
             <div class="card"><h4>מסלול 3</h4>
                 <div class="grid">
-                    <input type="number" id="m_a3" placeholder="סכום" oninput="calcM()">
-                    <input type="number" id="m_r3" placeholder="ריבית %" oninput="calcM()">
-                    <input type="number" id="m_y3" placeholder="שנים" oninput="calcM()">
+                    <input type="number" id="m_a3" placeholder="סכום" oninput="calcM(); save();">
+                    <input type="number" id="m_r3" placeholder="ריבית %" oninput="calcM(); save();">
+                    <input type="number" id="m_y3" placeholder="שנים" oninput="calcM(); save();">
                 </div>
             </div>
         </div>
@@ -151,30 +146,19 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
 let deferredPrompt;
 let incomes=[], expenses=[], loanMonthly=0, mortMonthly=0;
 
-/* PWA Logic */
+// PWA
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-});
-
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; });
 document.getElementById('installBtn').addEventListener('click', async () => {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-        deferredPrompt = null;
-    } else {
-        alert("להתקנה ידנית: לחץ על תפריט הדפדפן ובחר 'הוסף למסך הבית'.");
-    }
+    if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; } 
+    else { alert("להתקנה ידנית: לחץ על תפריט הדפדפן ובחר 'הוסף למסך הבית'."); }
 });
 
-/* UI Functions */
 function showSection(id){ document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function toggleDark(){ document.body.classList.toggle('dark'); }
 function pmt(P,r,n){ if(P<=0||n<=0) return 0; if(r===0) return P/n; return (P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1); }
 
-/* Data Management */
+// הוספה/עריכה/מחיקה
 function addItem(type){
     const pre=type==='incomes'?'inc':'exp';
     const name=document.getElementById(pre+'_name').value;
@@ -186,12 +170,13 @@ function addItem(type){
     refresh();
 }
 function deleteItem(type,idx){ (type==='incomes'?incomes:expenses).splice(idx,1); refresh(); }
+
 function editItem(type,idx){
-    const list=type==='incomes'?incomes:expenses;
-    const n=prompt("שם חדש:",list[idx].name);
-    const v=prompt("סכום חדש:",list[idx].val);
-    if(n) list[idx].name=n;
-    if(v) list[idx].val=+v;
+    const list = type==='incomes' ? incomes : expenses;
+    const newName = prompt("שם חדש:", list[idx].name);
+    const newVal = prompt("סכום חדש:", list[idx].val);
+    if(newName !== null && newName !== "") list[idx].name = newName;
+    if(newVal !== null && newVal !== "" && !isNaN(newVal)) list[idx].val = Number(newVal);
     refresh();
 }
 
@@ -200,19 +185,19 @@ function renderTable(type){
     const container=document.getElementById(type==='incomes'?'inc_table':'exp_table');
     if(!list.length){ container.innerHTML="אין נתונים"; return; }
     let h=`<table><tr><th>שם</th><th>₪</th><th>פעולות</th></tr>`;
-    list.forEach((item,i)=> h+=`<tr><td>${item.name}</td><td>${item.val.toLocaleString()}</td><td><button class="edit-btn" onclick="editItem('${type}',${i})">✏️</button><button class="delete-btn" onclick="deleteItem('${type}',${i})">🗑️</button></td></tr>`);
+    list.forEach((item,i)=> h+=`<tr><td>${item.name}</td><td>${item.val.toLocaleString()}</td><td><button class='edit-btn' onclick="editItem('${type}',${i})">✏️</button><button class='delete-btn' onclick="deleteItem('${type}',${i})">🗑️</button></td></tr>`);
     container.innerHTML=h+"</table>";
 }
 
-/* Calculations */
+// חישובים
 function calcLoan(){
-    const P=+l_amt.value||0;
-    const r=(+l_rt.value/100)/12;
-    const n=(+l_yrs.value)*12;
+    const P=+document.getElementById('l_amt').value||0;
+    const r=(+document.getElementById('l_rt').value/100)/12;
+    const n=(+document.getElementById('l_yrs').value)*12;
     loanMonthly=pmt(P,r,n);
-    l_res.innerText=loanMonthly?`החזר חודשי: ${loanMonthly.toFixed(2)} ₪`:"";
-    if(!P){ document.getElementById('l_tbl_area').innerHTML=""; return; }
-    let bal=P, h=`<button class="toggle-tbl-btn" onclick="this.nextElementSibling.classList.toggle('show')">📋 הצג/הסתר לוח סילוקין</button>
+    document.getElementById('l_res').innerText=loanMonthly?`החזר חודשי: ${loanMonthly.toFixed(2)} ₪`:"";
+    if(!P){ document.getElementById('l_tbl_area').innerHTML=""; updateDash(); return; }
+    let bal=P, h=`<button class="toggle-tbl-btn" onclick="this.nextElementSibling.classList.toggle('show')">📋 לוח סילוקין</button>
                    <div class="table-content"><div class="table-container"><table><tr><th>חודש</th><th>תשלום</th><th>ריבית</th><th>יתרה</th></tr>`;
     for(let i=1;i<=n;i++){
         let intr=bal*r, prn=loanMonthly-intr;
@@ -248,19 +233,27 @@ function calcM(){
 }
 
 function updateDash(){
-    const totalInc=incomes.reduce((a,b)=>a+b.val,0);
-    const totalExp=expenses.reduce((a,b)=>a+b.val,0);
-    const totalDebt=loanMonthly+mortMonthly;
-    const avail=totalInc-totalExp-totalDebt;
-    const dashEl=document.getElementById('dash_stats');
-    dashEl.innerHTML=`הכנסות: ${totalInc.toLocaleString()} ₪<br>הוצאות: ${totalExp.toLocaleString()} ₪<br>חובות: ${totalDebt.toLocaleString()} ₪<br><br><span style="font-size:1.4em;">יתרה פנויה: ${avail.toLocaleString()} ₪</span>`;
-    dashEl.style.color=avail>=0?'#2e7d32':'#d32f2f';
+    const tInc=incomes.reduce((a,b)=>a+b.val,0);
+    const tExp=expenses.reduce((a,b)=>a+b.val,0);
+    const tDebt=loanMonthly+mortMonthly;
+    const avail=tInc-tExp-tDebt;
+    const el=document.getElementById('dash_stats');
+    el.innerHTML=`הכנסות: ${tInc.toLocaleString()} ₪<br>הוצאות: ${tExp.toLocaleString()} ₪<br>חובות: ${tDebt.toLocaleString()} ₪<br><br><span style="font-size:1.4em;">יתרה פנויה: ${avail.toLocaleString()} ₪</span>`;
+    el.style.color=avail>=0?'#2e7d32':'#d32f2f';
 }
 
+// איפוס ושמירה
 function resetAll(){
-    if(!confirm("לאפס הכל? פעולה זו תמחק לצמיתות את כל הנתונים השמורים.")) return;
+    if(!confirm("האם למחוק הכל? פעולה זו תאפס את כל הנתונים באפליקציה.")) return;
     localStorage.removeItem("financeData");
-    location.reload(); 
+    incomes=[]; expenses=[];
+    loanMonthly=0; mortMonthly=0;
+    // ניקוי שדות קלט
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => input.value = "");
+    refresh();
+    calcLoan();
+    calcM();
 }
 
 function refresh(){ renderTable('incomes'); renderTable('expenses'); updateDash(); save(); }
@@ -279,10 +272,10 @@ window.onload=()=>{
     const d=JSON.parse(localStorage.getItem("financeData"));
     if(d){
         incomes=d.incomes||[]; expenses=d.expenses||[];
-        l_amt.value=d.l?.a||""; l_rt.value=d.l?.r||""; l_yrs.value=d.l?.y||"";
-        m_a1.value=d.m1?.a||""; m_r1.value=d.m1?.r||""; m_y1.value=d.m1?.y||"";
-        m_a2.value=d.m2?.a||""; m_r2.value=d.m2?.r||""; m_y2.value=d.m2?.y||"";
-        m_a3.value=d.m3?.a||""; m_r3.value=d.m3?.r||""; m_y3.value=d.m3?.y||"";
+        if(d.l){ l_amt.value=d.l.a; l_rt.value=d.l.r; l_yrs.value=d.l.y; }
+        if(d.m1){ m_a1.value=d.m1.a; m_r1.value=d.m1.r; m_y1.value=d.m1.y; }
+        if(d.m2){ m_a2.value=d.m2.a; m_r2.value=d.m2.r; m_y2.value=d.m2.y; }
+        if(d.m3){ m_a3.value=d.m3.a; m_r3.value=d.m3.r; m_y3.value=d.m3.y; }
     }
     refresh(); calcLoan(); calcM();
 };
