@@ -13,7 +13,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap');
 
 body { margin: 0; font-family: 'Assistant', sans-serif; background: #f4f7f6; color: #333; transition: 0.3s; min-height: 100vh; }
-header { padding: 25px; text-align: center; font-size: 32px; font-weight: 700; color: #1b5e20; }
+
+/* עיצוב הכותרת והלוגו */
+header { padding: 20px 20px 10px 20px; text-align: center; font-size: 32px; font-weight: 700; color: #1b5e20; }
+.logo-container { display: flex; justify-content: center; padding-bottom: 20px; }
+.logo-container img { width: 80px; height: 80px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
 nav { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 15px; background: #fff; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
 button { padding: 10px 18px; border: none; border-radius: 10px; background: linear-gradient(45deg,#43a047,#2e7d32); color: white; cursor: pointer; transition: 0.2s; font-family: inherit; font-weight: 600; display:flex; align-items:center; gap:5px;}
@@ -42,6 +47,7 @@ th { background: #f8f9fa; position: sticky; top: 0; }
 .dark table { background: #252525; color: #eee; }
 .dark th { background: #333; color: #fff; }
 .dark td { color: #eee; }
+.dark nav { background: #252525; }
 
 .edit-btn { background: #ffa000; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; margin-left: 3px; }
 .delete-btn { background: #d32f2f; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; }
@@ -52,6 +58,10 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
 <body>
 
 <header>שקל לשקל</header>
+
+<div class="logo-container">
+    <img src="icon-192.png" alt="לוגו שקל לשקל">
+</div>
 
 <nav>
     <button onclick="showSection('dashboard')">📊 מצב אישי</button>
@@ -96,8 +106,8 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
         <h3>מחשבון הלוואה</h3>
         <div class="grid">
             <div><label>סכום ההלוואה</label><input type="number" id="l_amt" oninput="calcLoan()"></div>
-            <div><label>ריבית שנתית %</label><input type="number" id="l_rt" oninput="calcLoan()"></div>
-            <div><label>תקופה בשנים</label><input type="number" id="l_yrs" oninput="calcLoan()"></div>
+            <div><label>ריבית %</label><input type="number" id="l_rt" oninput="calcLoan()"></div>
+            <div><label>שנים</label><input type="number" id="l_yrs" oninput="calcLoan()"></div>
         </div>
         <div id="l_res" style="font-size: 20px; color: #d32f2f; margin: 15px 0; font-weight: bold;"></div>
         <div id="l_tbl_area"></div>
@@ -141,7 +151,7 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
 let deferredPrompt;
 let incomes=[], expenses=[], loanMonthly=0, mortMonthly=0;
 
-/* PWA */
+/* PWA Logic */
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -152,19 +162,19 @@ window.addEventListener('beforeinstallprompt', (e) => {
 document.getElementById('installBtn').addEventListener('click', async () => {
     if (deferredPrompt) {
         deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
+        await deferredPrompt.userChoice;
         deferredPrompt = null;
     } else {
-        alert("התקנה ידנית: לחץ על תפריט הדפדפן (3 נקודות) ובחר 'הוסף למסך הבית' או 'התקן אפליקציה'.");
+        alert("להתקנה ידנית: לחץ על תפריט הדפדפן ובחר 'הוסף למסך הבית'.");
     }
 });
 
-/* UI */
+/* UI Functions */
 function showSection(id){ document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function toggleDark(){ document.body.classList.toggle('dark'); }
 function pmt(P,r,n){ if(P<=0||n<=0) return 0; if(r===0) return P/n; return (P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1); }
 
-/* Finance Data */
+/* Data Management */
 function addItem(type){
     const pre=type==='incomes'?'inc':'exp';
     const name=document.getElementById(pre+'_name').value;
@@ -194,7 +204,7 @@ function renderTable(type){
     container.innerHTML=h+"</table>";
 }
 
-/* Calculators */
+/* Calculations */
 function calcLoan(){
     const P=+l_amt.value||0;
     const r=(+l_rt.value/100)/12;
@@ -248,7 +258,7 @@ function updateDash(){
 }
 
 function resetAll(){
-    if(!confirm("האם למחוק הכל? פעולה זו תאפס את כל הנתונים באפליקציה.")) return;
+    if(!confirm("לאפס הכל? פעולה זו תמחק לצמיתות את כל הנתונים השמורים.")) return;
     localStorage.removeItem("financeData");
     location.reload(); 
 }
