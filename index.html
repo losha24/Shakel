@@ -10,15 +10,16 @@
 <meta name="theme-color" content="#2e7d32">
 
 <style>
-body { margin:0;font-family:Arial;background:#f4f7f6;color:#333;transition:.3s;}
-header{padding:20px;text-align:center;font-size:28px;font-weight:bold;color:#1b5e20;}
-nav{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:10px;background:#fff;position:sticky;top:0;z-index:1000}
+body{margin:0;font-family:Arial;background:#f4f7f6;color:#333;transition:.3s}
+header{padding:25px;text-align:center;font-size:30px;font-weight:bold;color:#1b5e20}
+nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:15px;background:#fff;position:sticky;top:0;z-index:1000}
 button{padding:8px 14px;border:none;border-radius:8px;background:#2e7d32;color:#fff;cursor:pointer}
 button.red{background:#c62828}
 button.gray{background:#555}
-.section{display:none;padding:20px;max-width:900px;margin:auto}
+button.blue{background:#1565c0}
+.section{display:none;padding:20px;max-width:1000px;margin:auto}
 .section.active{display:block}
-.card{background:#fff;padding:15px;border-radius:10px;margin-bottom:15px}
+.card{background:#fff;padding:15px;border-radius:12px;margin-bottom:15px}
 input{width:100%;padding:8px;margin:5px 0}
 .table-container{max-height:350px;overflow:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -26,6 +27,8 @@ th,td{border-bottom:1px solid #ddd;padding:6px;text-align:center}
 .dark{background:#121212;color:#eee}
 .dark .card{background:#1e1e1e}
 .show-more{margin-top:10px;background:#1565c0}
+.edit-btn{background:#ffa000}
+.delete-btn{background:#d32f2f}
 </style>
 </head>
 <body>
@@ -34,17 +37,42 @@ th,td{border-bottom:1px solid #ddd;padding:6px;text-align:center}
 
 <nav>
 <button onclick="showSection('dashboard')">📊 מצב אישי</button>
+<button onclick="showSection('income_section')">💰 הכנסות והוצאות</button>
 <button onclick="showSection('loan_section')">💳 הלוואה</button>
+<button onclick="showSection('mortgage_section')">🏠 משכנתא</button>
 <button onclick="toggleDark()" class="gray">🌙 מצב כהה</button>
+<button onclick="resetAll()" class="red">🧹 איפוס</button>
+<button id="installBtn" class="blue">⬇️ התקן</button>
 </nav>
 
+<!-- DASHBOARD -->
 <div id="dashboard" class="section active">
 <div class="card">
-<h3>סיכום</h3>
+<h3>סיכום תקציב</h3>
 <div id="dash_stats"></div>
 </div>
 </div>
 
+<!-- INCOME / EXPENSE -->
+<div id="income_section" class="section">
+<div class="card">
+<h3>הכנסות</h3>
+<input type="text" id="inc_name" placeholder="מקור">
+<input type="number" id="inc_val" placeholder="סכום">
+<button onclick="addItem('incomes')">➕ הוסף</button>
+<div id="inc_table" class="table-container"></div>
+</div>
+
+<div class="card">
+<h3>הוצאות</h3>
+<input type="text" id="exp_name" placeholder="שם הוצאה">
+<input type="number" id="exp_val" placeholder="סכום">
+<button onclick="addItem('expenses')">➕ הוסף</button>
+<div id="exp_table" class="table-container"></div>
+</div>
+</div>
+
+<!-- LOAN -->
 <div id="loan_section" class="section">
 <div class="card">
 <h3>מחשבון הלוואה</h3>
@@ -53,36 +81,84 @@ th,td{border-bottom:1px solid #ddd;padding:6px;text-align:center}
 <input type="number" id="l_yrs" placeholder="שנים" oninput="calcLoan()">
 <div id="l_res" style="margin:10px 0;font-weight:bold"></div>
 <div id="l_tbl" class="table-container"></div>
-<button id="showMoreBtn" class="show-more" onclick="toggleFullSchedule()" style="display:none">הצג עוד</button>
+<button id="loanToggleBtn" class="show-more" onclick="toggleLoanSchedule()" style="display:none"></button>
+</div>
+</div>
+
+<!-- MORTGAGE -->
+<div id="mortgage_section" class="section">
+<div class="card">
+<h3>משכנתא - 3 מסלולים</h3>
+<div id="m_tracks"></div>
+<div id="m_res"></div>
 </div>
 </div>
 
 <script>
-const CACHE_VERSION = "v2";
-let fullSchedule = [];
-let showAll = false;
+const APP_VERSION="v3";
 
+/* ---------- SERVICE WORKER ---------- */
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
 navigator.serviceWorker.register('sw.js');
 });
 }
 
+/* ---------- STATE ---------- */
+let incomes=[],expenses=[];
+let loanMonthly=0,mortMonthly=0;
+let fullLoanSchedule=[],showLoanAll=false;
+
+/* ---------- UI ---------- */
 function showSection(id){
 document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
 document.getElementById(id).classList.add('active');
 }
+function toggleDark(){document.body.classList.toggle('dark');}
 
-function toggleDark(){
-document.body.classList.toggle('dark');
-}
-
+/* ---------- PMT ---------- */
 function pmt(P,r,n){
-if(P<=0||n<=0) return 0;
-if(r===0) return P/n;
-return (P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
+if(P<=0||n<=0)return 0;
+if(r===0)return P/n;
+return(P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
 }
 
+/* ---------- INCOME/EXPENSE ---------- */
+function addItem(type){
+const pre=type==='incomes'?'inc':'exp';
+const name=document.getElementById(pre+'_name').value;
+const val=+document.getElementById(pre+'_val').value;
+if(!name||!val)return;
+(type==='incomes'?incomes:expenses).push({name,val});
+document.getElementById(pre+'_name').value="";
+document.getElementById(pre+'_val').value="";
+refreshTables();
+}
+function deleteItem(type,i){
+(type==='incomes'?incomes:expenses).splice(i,1);
+refreshTables();
+}
+function renderTable(type){
+const list=type==='incomes'?incomes:expenses;
+const container=document.getElementById(type==='incomes'?'inc_table':'exp_table');
+if(!list.length){container.innerHTML="אין נתונים";return;}
+let h="<table><tr><th>שם</th><th>סכום</th><th></th></tr>";
+list.forEach((item,i)=>{
+h+=`<tr>
+<td>${item.name}</td>
+<td>${item.val.toLocaleString()} ₪</td>
+<td><button class="delete-btn" onclick="deleteItem('${type}',${i})">🗑️</button></td>
+</tr>`;
+});
+container.innerHTML=h+"</table>";
+}
+function refreshTables(){
+renderTable('incomes');
+renderTable('expenses');
+updateDash();
+}
+
+/* ---------- LOAN WITH 12 ROWS ---------- */
 function calcLoan(){
 const P=+l_amt.value||0;
 const r=(+l_rt.value/100)/12;
@@ -90,54 +166,71 @@ const n=(+l_yrs.value)*12;
 if(!P||!n){l_tbl.innerHTML="";l_res.innerText="";return;}
 
 const pay=pmt(P,r,n);
+loanMonthly=pay;
 l_res.innerText="החזר חודשי: "+pay.toFixed(2)+" ₪";
 
 let bal=P;
-fullSchedule=[];
+fullLoanSchedule=[];
 for(let i=1;i<=n;i++){
 let intr=bal*r;
 let prn=pay-intr;
 bal-=prn;
-fullSchedule.push({
-month:i,
-pay:pay,
-intr:intr,
-prn:prn,
-bal:Math.max(0,bal)
-});
-if(bal<=0) break;
+fullLoanSchedule.push({m:i,p:pay,i:intr,pr:prn,b:Math.max(0,bal)});
+if(bal<=0)break;
+}
+renderLoanSchedule();
+updateDash();
 }
 
-renderSchedule();
-}
-
-function renderSchedule(){
-if(!fullSchedule.length){l_tbl.innerHTML="";return;}
-let limit=showAll?fullSchedule.length:12;
+function renderLoanSchedule(){
+let limit=showLoanAll?fullLoanSchedule.length:12;
 let h="<table><tr><th>חודש</th><th>תשלום</th><th>ריבית</th><th>קרן</th><th>יתרה</th></tr>";
 for(let i=0;i<limit;i++){
-let row=fullSchedule[i];
+let r=fullLoanSchedule[i];
 h+=`<tr>
-<td>${row.month}</td>
-<td>${row.pay.toFixed(0)}</td>
-<td>${row.intr.toFixed(0)}</td>
-<td>${row.prn.toFixed(0)}</td>
-<td>${row.bal.toFixed(0)}</td>
+<td>${r.m}</td>
+<td>${r.p.toFixed(0)}</td>
+<td>${r.i.toFixed(0)}</td>
+<td>${r.pr.toFixed(0)}</td>
+<td>${r.b.toFixed(0)}</td>
 </tr>`;
 }
-h+="</table>";
-l_tbl.innerHTML=h;
+l_tbl.innerHTML=h+"</table>";
 
-document.getElementById("showMoreBtn").style.display =
-fullSchedule.length>12?"block":"none";
-
-document.getElementById("showMoreBtn").innerText =
-showAll?"הצג פחות":"הצג עוד";
+if(fullLoanSchedule.length>12){
+loanToggleBtn.style.display="block";
+loanToggleBtn.innerText=showLoanAll?"הצג פחות":"הצג עוד";
+}else{
+loanToggleBtn.style.display="none";
+}
+}
+function toggleLoanSchedule(){
+showLoanAll=!showLoanAll;
+renderLoanSchedule();
 }
 
-function toggleFullSchedule(){
-showAll=!showAll;
-renderSchedule();
+/* ---------- DASH ---------- */
+function updateDash(){
+const totalInc=incomes.reduce((a,b)=>a+b.val,0);
+const totalExp=expenses.reduce((a,b)=>a+b.val,0);
+const totalDebt=loanMonthly+mortMonthly;
+const avail=totalInc-totalExp-totalDebt;
+dash_stats.innerHTML=
+`הכנסות: ${totalInc.toLocaleString()} ₪<br>
+הוצאות: ${totalExp.toLocaleString()} ₪<br>
+חובות: ${totalDebt.toLocaleString()} ₪<br>
+<strong>פנוי: ${avail.toLocaleString()} ₪</strong>`;
+dash_stats.style.color=avail>=0?"green":"red";
+}
+
+/* ---------- RESET ---------- */
+function resetAll(){
+if(!confirm("לאפס הכל?"))return;
+incomes=[];expenses=[];
+l_amt.value="";l_rt.value="";l_yrs.value="";
+loanMonthly=0;mortMonthly=0;
+refreshTables();
+l_tbl.innerHTML="";
 }
 </script>
 </body>
