@@ -1,4 +1,4 @@
-const CACHE_NAME="shakel-app-v4";
+const CACHE_NAME="shakel-app-v5";
 const ASSETS=["./","./index.html","./manifest.json","./icon-192.png","./icon-512.png"];
 
 self.addEventListener("install",e=>{
@@ -17,7 +17,5 @@ self.clients.claim();
 });
 
 self.addEventListener("fetch",e=>{
-e.respondWith(
-caches.match(e.request).then(r=>r||fetch(e.request))
-);
+e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
 });
