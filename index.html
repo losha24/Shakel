@@ -61,13 +61,13 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
     <button onclick="showSection('mortgage_section')">🏠 משכנתא</button>
     <button onclick="toggleDark()" class="red">🌙 מצב כהה</button>
     <button onclick="resetAll()" class="gray">🧹 איפוס מהיר</button>
-    <button id="installBtn" class="blue" style="display:none;">⬇️ התקן אפליקציה</button>
+    <button id="installBtn" class="blue">⬇️ התקן אפליקציה</button>
 </nav>
 
 <div id="dashboard" class="section active">
     <div class="card">
         <h3>סיכום תקציב</h3>
-        <div id="dash_stats" style="font-size: 18px; font-weight: bold;"></div>
+        <div id="dash_stats" style="font-size: 18px; font-weight: bold; line-height: 1.6;"></div>
     </div>
 </div>
 
@@ -142,10 +142,31 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
 let deferredPrompt;
 let incomes=[], expenses=[], loanMonthly=0, mortMonthly=0;
 
-/* PWA */
-if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); deferredPrompt=e; document.getElementById('installBtn').style.display="block"; });
-document.getElementById('installBtn').addEventListener('click', async ()=>{ document.getElementById('installBtn').style.display="none"; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; });
+/* PWA - רישום ה-Service Worker */
+if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+}
+
+/* מאזין לאירוע התקנה של הדפדפן */
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+});
+
+/* פונקציית הלחיצה על כפתור ההתקנה */
+document.getElementById('installBtn').addEventListener('click', async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+        }
+        deferredPrompt = null;
+    } else {
+        // אם הדפדפן לא שלח את האירוע (למשל האפליקציה כבר מותקנת או שאינו תומך)
+        alert("כדי להתקין: לחץ על שלוש הנקודות בדפדפן (תפריט) ובחר ב-'הוספה למסך הבית' או 'התקן אפליקציה'.");
+    }
+});
 
 /* UI Logic */
 function showSection(id){ document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
@@ -238,7 +259,7 @@ function updateDash(){
     dashEl.style.color=avail>=0?'green':'red';
 }
 
-function resetAll(){ if(confirm("לאפס הכל?")) { localStorage.removeItem("financeData"); location.reload(); } }
+function resetAll(){ if(confirm("האם לאפס את כל הנתונים באפליקציה?")) { localStorage.removeItem("financeData"); location.reload(); } }
 function refresh(){ renderTable('incomes'); renderTable('expenses'); updateDash(); save(); }
 function save(){
     const data={incomes,expenses,
