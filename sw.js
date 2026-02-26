@@ -1,21 +1,11 @@
-const CACHE_NAME="shakel-app-v5";
-const ASSETS=["./","./index.html","./manifest.json","./icon-192.png","./icon-512.png"];
-
-self.addEventListener("install",e=>{
-self.skipWaiting();
-e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)));
+self.addEventListener('install', event => {
+    event.waitUntil(
+        caches.open('finance-v1').then(cache => {
+            return cache.addAll(['index.html','manifest.json','icon-192.png','icon-512.png']);
+        })
+    );
 });
 
-self.addEventListener("activate",e=>{
-e.waitUntil(
-caches.keys().then(keys=>
-Promise.all(keys.map(k=>{
-if(k!==CACHE_NAME)return caches.delete(k);
-}))
-));
-self.clients.claim();
-});
-
-self.addEventListener("fetch",e=>{
-e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
+self.addEventListener('fetch', event => {
+    event.respondWith(caches.match(event.request).then(res => res || fetch(event.request)));
 });
