@@ -22,7 +22,6 @@ button.blue { background: linear-gradient(45deg,#1e88e5,#1565c0); }
 button.gray { background: linear-gradient(45deg,#757575,#424242); }
 button:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
 
-/* עיצוב כפתור התג (Accordion) */
 .toggle-tbl-btn { background: #607d8b; margin: 10px 0; width: 100%; justify-content: center; font-size: 14px; }
 .table-content { display: none; margin-top: 10px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
 .table-content.show { display: block; }
@@ -60,14 +59,14 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
     <button onclick="showSection('loan_section')">💳 הלוואה</button>
     <button onclick="showSection('mortgage_section')">🏠 משכנתא</button>
     <button onclick="toggleDark()" class="red">🌙 מצב כהה</button>
-    <button onclick="resetAll()" class="gray">🧹 איפוס מהיר</button>
+    <button onclick="resetAll()" class="gray">🧹 איפוס הכל</button>
     <button id="installBtn" class="blue">⬇️ התקן אפליקציה</button>
 </nav>
 
 <div id="dashboard" class="section active">
     <div class="card">
-        <h3>סיכום תקציב</h3>
-        <div id="dash_stats" style="font-size: 18px; font-weight: bold; line-height: 1.6;"></div>
+        <h3>סיכום תקציב חודשי</h3>
+        <div id="dash_stats" style="font-size: 18px; font-weight: bold; line-height: 1.8;"></div>
     </div>
 </div>
 
@@ -77,7 +76,7 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
         <div style="display:flex; gap:10px;">
             <input type="text" id="inc_name" placeholder="מקור הכנסה">
             <input type="number" id="inc_val" placeholder="סכום">
-            <button onclick="addItem('incomes')">➕ הוסף</button>
+            <button onclick="addItem('incomes')">➕</button>
         </div>
         <div id="inc_table" class="table-container"></div>
     </div>
@@ -86,7 +85,7 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
         <div style="display:flex; gap:10px;">
             <input type="text" id="exp_name" placeholder="שם ההוצאה">
             <input type="number" id="exp_val" placeholder="סכום">
-            <button onclick="addItem('expenses')">➕ הוסף</button>
+            <button onclick="addItem('expenses')">➕</button>
         </div>
         <div id="exp_table" class="table-container"></div>
     </div>
@@ -96,9 +95,9 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
     <div class="card">
         <h3>מחשבון הלוואה</h3>
         <div class="grid">
-            <div><label>סכום</label><input type="number" id="l_amt" oninput="calcLoan()"></div>
-            <div><label>ריבית %</label><input type="number" id="l_rt" oninput="calcLoan()"></div>
-            <div><label>שנים</label><input type="number" id="l_yrs" oninput="calcLoan()"></div>
+            <div><label>סכום ההלוואה</label><input type="number" id="l_amt" oninput="calcLoan()"></div>
+            <div><label>ריבית שנתית %</label><input type="number" id="l_rt" oninput="calcLoan()"></div>
+            <div><label>תקופה בשנים</label><input type="number" id="l_yrs" oninput="calcLoan()"></div>
         </div>
         <div id="l_res" style="font-size: 20px; color: #d32f2f; margin: 15px 0; font-weight: bold;"></div>
         <div id="l_tbl_area"></div>
@@ -142,38 +141,30 @@ footer { text-align: center; padding: 20px; color: #888; font-size: 13px; }
 let deferredPrompt;
 let incomes=[], expenses=[], loanMonthly=0, mortMonthly=0;
 
-/* PWA - רישום ה-Service Worker */
-if('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-}
+/* PWA */
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
-/* מאזין לאירוע התקנה של הדפדפן */
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
 });
 
-/* פונקציית הלחיצה על כפתור ההתקנה */
 document.getElementById('installBtn').addEventListener('click', async () => {
     if (deferredPrompt) {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-            console.log('User accepted the install prompt');
-        }
         deferredPrompt = null;
     } else {
-        // אם הדפדפן לא שלח את האירוע (למשל האפליקציה כבר מותקנת או שאינו תומך)
-        alert("כדי להתקין: לחץ על שלוש הנקודות בדפדפן (תפריט) ובחר ב-'הוספה למסך הבית' או 'התקן אפליקציה'.");
+        alert("התקנה ידנית: לחץ על תפריט הדפדפן (3 נקודות) ובחר 'הוסף למסך הבית' או 'התקן אפליקציה'.");
     }
 });
 
-/* UI Logic */
+/* UI */
 function showSection(id){ document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function toggleDark(){ document.body.classList.toggle('dark'); }
 function pmt(P,r,n){ if(P<=0||n<=0) return 0; if(r===0) return P/n; return (P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1); }
 
-/* Finance Items */
+/* Finance Data */
 function addItem(type){
     const pre=type==='incomes'?'inc':'exp';
     const name=document.getElementById(pre+'_name').value;
@@ -203,16 +194,14 @@ function renderTable(type){
     container.innerHTML=h+"</table>";
 }
 
-/* Loan with Toggle */
+/* Calculators */
 function calcLoan(){
     const P=+l_amt.value||0;
     const r=(+l_rt.value/100)/12;
     const n=(+l_yrs.value)*12;
     loanMonthly=pmt(P,r,n);
     l_res.innerText=loanMonthly?`החזר חודשי: ${loanMonthly.toFixed(2)} ₪`:"";
-    
     if(!P){ document.getElementById('l_tbl_area').innerHTML=""; return; }
-    
     let bal=P, h=`<button class="toggle-tbl-btn" onclick="this.nextElementSibling.classList.toggle('show')">📋 הצג/הסתר לוח סילוקין</button>
                    <div class="table-content"><div class="table-container"><table><tr><th>חודש</th><th>תשלום</th><th>ריבית</th><th>יתרה</th></tr>`;
     for(let i=1;i<=n;i++){
@@ -224,7 +213,6 @@ function calcLoan(){
     updateDash();
 }
 
-/* Mortgage with Toggles */
 function calcM(){
     mortMonthly=0;
     let htmlTables="";
@@ -255,12 +243,18 @@ function updateDash(){
     const totalDebt=loanMonthly+mortMonthly;
     const avail=totalInc-totalExp-totalDebt;
     const dashEl=document.getElementById('dash_stats');
-    dashEl.innerHTML=`הכנסות: ${totalInc.toLocaleString()} ₪<br>הוצאות: ${totalExp.toLocaleString()} ₪<br>חובות: ${totalDebt.toLocaleString()} ₪<br><br><span style="font-size:1.4em;">פנוי: ${avail.toLocaleString()} ₪</span>`;
-    dashEl.style.color=avail>=0?'green':'red';
+    dashEl.innerHTML=`הכנסות: ${totalInc.toLocaleString()} ₪<br>הוצאות: ${totalExp.toLocaleString()} ₪<br>חובות: ${totalDebt.toLocaleString()} ₪<br><br><span style="font-size:1.4em;">יתרה פנויה: ${avail.toLocaleString()} ₪</span>`;
+    dashEl.style.color=avail>=0?'#2e7d32':'#d32f2f';
 }
 
-function resetAll(){ if(confirm("האם לאפס את כל הנתונים באפליקציה?")) { localStorage.removeItem("financeData"); location.reload(); } }
+function resetAll(){
+    if(!confirm("האם למחוק הכל? פעולה זו תאפס את כל הנתונים באפליקציה.")) return;
+    localStorage.removeItem("financeData");
+    location.reload(); 
+}
+
 function refresh(){ renderTable('incomes'); renderTable('expenses'); updateDash(); save(); }
+
 function save(){
     const data={incomes,expenses,
         l:{a:l_amt.value,r:l_rt.value,y:l_yrs.value},
