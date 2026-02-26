@@ -1,6 +1,6 @@
 self.addEventListener('install', event => {
     event.waitUntil(
-        caches.open('finance-v2').then(cache => {
+        caches.open('finance-v2.1').then(cache => {
             return cache.addAll(['index.html','manifest.json','icon-192.png','icon-512.png']);
         })
     );
