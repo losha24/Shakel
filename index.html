@@ -2,8 +2,8 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>שקל לשקל - ניהול תקציב חכם</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>שקל לשקל - 7.2</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2e7d32">
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
@@ -11,79 +11,40 @@
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap');
-
 body { margin: 0; font-family: 'Assistant', sans-serif; background: #f4f7f6; color: #333; transition: 0.3s; min-height: 100vh; overflow-x: hidden; }
-
-/* עיצוב כללי למרכוז */
-header, .logo-container, nav, .section, footer {
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-}
-
+header, .logo-container, nav, .section, footer { max-width: 800px; margin-left: auto; margin-right: auto; text-align: center; }
 header { padding: 20px 20px 5px 20px; font-size: 32px; font-weight: 700; color: #1b5e20; }
 .logo-container { display: flex; justify-content: center; padding-bottom: 15px; }
 .logo-container img { width: 70px; height: 70px; border-radius: 15px; }
-
 nav { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 12px; background: #fff; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 0 0 15px 15px; }
-
 button { padding: 10px 14px; border: none; border-radius: 10px; background: linear-gradient(45deg,#43a047,#2e7d32); color: white; cursor: pointer; font-weight: 600; display:flex; align-items:center; gap:5px; font-size: 14px; white-space: nowrap; transition: 0.2s; justify-content: center; }
 button:active { transform: scale(0.95); }
-
 button.red { background: linear-gradient(45deg,#e53935,#c62828); }
 button.blue { background: linear-gradient(45deg,#1e88e5,#1565c0); }
 button.gray { background: linear-gradient(45deg,#757575,#424242); }
 button.purple { background: linear-gradient(45deg,#8e24aa,#6a1b9a); }
-
 .section { display: none; padding: 20px; box-sizing: border-box; }
 .section.active { display: block; }
-
 .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; width: 100%; box-sizing: border-box; }
-
 .dash-container { display: flex; flex-direction: column; align-items: center; gap: 15px; }
 .chart-box { width: 220px; height: 220px; margin: 0 auto; }
-
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; width: 100%; }
 input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-family: inherit; text-align: center; }
-
 table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px; }
 th, td { border-bottom: 1px solid #eee; padding: 12px; text-align: center; }
-
 .action-btn { padding: 6px 10px; border-radius: 8px; border: none; color: white; cursor: pointer; font-size: 12px; }
 .edit-btn { background: #ffa000; margin: 0 2px; }
 .delete-btn { background: #d32f2f; margin: 0 2px; }
-
 .toggle-tbl-btn { background: #607d8b; margin: 15px auto; width: 100%; max-width: 300px; color: white; border-radius: 8px; padding: 12px; border: none; cursor: pointer; }
 .table-content { display: none; margin-top: 10px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
 .table-content.show { display: block; }
-
-/* עיצוב בולט להערת החיסכון */
-.extra-info { 
-    background: #fff3e0; 
-    padding: 15px; 
-    border-radius: 10px; 
-    margin: 15px auto; 
-    font-weight: bold; 
-    color: #e65100; 
-    text-align: center; 
-    border: 2px dashed #ffb74d;
-    max-width: 300px;
-}
-
-@media print {
-    nav, header, .logo-container, button, .toggle-tbl-btn, .action-btn { display: none !important; }
-    .table-content { display: block !important; }
-    body { background: white; }
-    .card { box-shadow: none; border: 1px solid #eee; }
-}
-
+.extra-info { background: #fff3e0; padding: 15px; border-radius: 10px; margin: 15px auto; font-weight: bold; color: #e65100; text-align: center; border: 2px dashed #ffb74d; max-width: 300px; display: none; }
 .dark { background: #1a1a1a; color: #eee; }
 .dark .card { background: #252525; color: #eee; }
 .dark nav { background: #252525; }
 .dark input { background: #333; color: #eee; border-color: #444; }
-
 footer { padding: 30px; color: #888; font-size: 13px; }
+@media print { nav, header, .logo-container, button, .toggle-tbl-btn, .action-btn { display: none !important; } .table-content { display: block !important; } body { background: white; } .card { box-shadow: none; border: 1px solid #eee; } }
 </style>
 </head>
 <body>
@@ -97,6 +58,7 @@ footer { padding: 30px; color: #888; font-size: 13px; }
     <button onclick="showSection('loan_section')">💳 הלוואה</button>
     <button onclick="showSection('mortgage_section')">🏠 משכנתא</button>
     <button onclick="window.print()" class="purple">📄 PDF</button>
+    <button id="installBtn" class="blue" style="display:none;">⬇️ התקנה</button>
     <button onclick="toggleDark()" class="red">🌙 לילה</button>
     <button onclick="resetAll()" class="gray">🧹 איפוס</button>
 </nav>
@@ -138,7 +100,7 @@ footer { padding: 30px; color: #888; font-size: 13px; }
             <input type="number" id="l_yrs" placeholder="תקופה בשנים" oninput="calcLoan();">
             <input type="number" id="l_extra" placeholder="תוספת חודשית ₪" oninput="calcLoan();" style="border: 2px solid #8e24aa;">
         </div>
-        <div id="l_info" class="extra-info" style="display:none;"></div>
+        <div id="l_info" class="extra-info"></div>
         <div id="l_res" style="font-size: 20px; color: #d32f2f; margin: 15px 0; font-weight: bold;"></div>
         <div id="l_tbl_area"></div>
     </div>
@@ -148,9 +110,9 @@ footer { padding: 30px; color: #888; font-size: 13px; }
     <div class="card">
         <h3>מחשבון משכנתא</h3>
         <div id="m_tracks">
-            <div class="card"><h4>מסלול 1</h4><div class="grid"><input type="number" id="m_a1" placeholder="סכום" oninput="calcM();"><input type="number" id="m_r1" placeholder="%" oninput="calcM();"><input type="number" id="m_y1" placeholder="שנים" oninput="calcM();"><input type="number" id="m_e1" placeholder="תוספת ₪" oninput="calcM();"></div><div id="m_info1" class="extra-info" style="display:none;"></div></div>
-            <div class="card"><h4>מסלול 2</h4><div class="grid"><input type="number" id="m_a2" placeholder="סכום" oninput="calcM();"><input type="number" id="m_r2" placeholder="%" oninput="calcM();"><input type="number" id="m_y2" placeholder="שנים" oninput="calcM();"><input type="number" id="m_e2" placeholder="תוספת ₪" oninput="calcM();"></div><div id="m_info2" class="extra-info" style="display:none;"></div></div>
-            <div class="card"><h4>מסלול 3</h4><div class="grid"><input type="number" id="m_a3" placeholder="סכום" oninput="calcM();"><input type="number" id="m_r3" placeholder="%" oninput="calcM();"><input type="number" id="m_y3" placeholder="שנים" oninput="calcM();"><input type="number" id="m_e3" placeholder="תוספת ₪" oninput="calcM();"></div><div id="m_info3" class="extra-info" style="display:none;"></div></div>
+            <div class="card"><h4>מסלול 1</h4><div class="grid"><input type="number" id="m_a1" placeholder="סכום" oninput="calcM();"><input type="number" id="m_r1" placeholder="%" oninput="calcM();"><input type="number" id="m_y1" placeholder="שנים" oninput="calcM();"><input type="number" id="m_e1" placeholder="תוספת ₪" oninput="calcM();"></div><div id="m_info1" class="extra-info"></div></div>
+            <div class="card"><h4>מסלול 2</h4><div class="grid"><input type="number" id="m_a2" placeholder="סכום" oninput="calcM();"><input type="number" id="m_r2" placeholder="%" oninput="calcM();"><input type="number" id="m_y2" placeholder="שנים" oninput="calcM();"><input type="number" id="m_e2" placeholder="תוספת ₪" oninput="calcM();"></div><div id="m_info2" class="extra-info"></div></div>
+            <div class="card"><h4>מסלול 3</h4><div class="grid"><input type="number" id="m_a3" placeholder="סכום" oninput="calcM();"><input type="number" id="m_r3" placeholder="%" oninput="calcM();"><input type="number" id="m_y3" placeholder="שנים" oninput="calcM();"><input type="number" id="m_e3" placeholder="תוספת ₪" oninput="calcM();"></div><div id="m_info3" class="extra-info"></div></div>
         </div>
         <div id="m_res_summary" style="font-size: 18px; font-weight: bold; background: #e8f5e9; padding: 15px; border-radius: 10px;"></div>
         <div id="m_tbl_area"></div>
@@ -164,8 +126,34 @@ let incomes=[], expenses=[], loanMonthly=0, mortMonthly=0;
 let myChart = null;
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); });
+  navigator.serviceWorker.register('./sw.js').then(reg => {
+    reg.onupdatefound = () => {
+      const installingWorker = reg.installing;
+      installingWorker.onstatechange = () => {
+        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          if(confirm("גרסה חדשה זמינה! לרענן כעת?")) window.location.reload();
+        }
+      };
+    };
+  });
 }
+
+let deferredPrompt;
+const installBtn = document.getElementById('installBtn');
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'flex';
+});
+installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
+    } else {
+        alert("להוספה למסך הבית:\n1. לחץ על כפתור האפשרויות/שיתוף בדפדפן\n2. בחר 'הוסף למסך הבית'");
+    }
+});
 
 function showSection(id){ document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function toggleDark(){ document.body.classList.toggle('dark'); }
@@ -173,44 +161,27 @@ function pmt(P,r,n){ if(P<=0||n<=0) return 0; if(r===0) return P/n; return (P*r*
 
 function createAmortizationTable(P, r, n, extraPay = 0, infoId = null) {
     if (!P || n <= 0) return "";
-    let basePay = pmt(P, r, n);
-    let currentPay = basePay + extraPay;
-    let bal = P;
-    let actualMonths = 0;
-    
+    let basePay = pmt(P, r, n), currentPay = basePay + extraPay, bal = P, actualMonths = 0;
     let html = `<button class="toggle-tbl-btn" onclick="this.nextElementSibling.classList.toggle('show')">📋 לוח סילוקין</button>
                 <div class="table-content"><table><tr><th>חודש</th><th>תשלום</th><th>יתרה</th></tr>`;
-    
-    for (let i = 1; i <= n * 5; i++) { // טווח רחב ליתר ביטחון
-        let interest = bal * r;
-        let principal = currentPay - interest;
-        if (principal <= 0 && bal > 0) {
-            html += `<tr><td colspan="3">החזר נמוך מדי</td></tr>`;
-            break;
-        }
-        bal -= principal;
-        actualMonths = i;
+    for (let i = 1; i <= n * 6; i++) {
+        let interest = bal * r, principal = currentPay - interest;
+        if (principal <= 0 && bal > 0) { html += `<tr><td colspan="3">החזר נמוך מדי</td></tr>`; break; }
+        bal -= principal; actualMonths = i;
         let hiddenClass = i > 12 ? 'class="extra-row" style="display:none"' : '';
         html += `<tr ${hiddenClass}><td>${i}</td><td>${currentPay.toFixed(0)}</td><td>${Math.max(0, bal).toFixed(0)}</td></tr>`;
         if (i === 12 && n > 12) html += `<tr class="show-more-row" onclick="showAllRows(this)"> <td colspan="3">הצג עוד...</td> </tr>`;
         if (bal <= 0) break;
     }
-    
     if (infoId) {
-        let infoEl = document.getElementById(infoId);
-        let monthsSaved = (n - actualMonths);
-        if (extraPay > 0 && monthsSaved > 0) {
-            infoEl.style.display = "block";
-            infoEl.innerText = `🔥 חיסכון של ${monthsSaved} חודשים!`;
-        } else {
-            infoEl.style.display = "none";
-        }
+        let infoEl = document.getElementById(infoId), saved = n - actualMonths;
+        if (extraPay > 0 && saved > 0) { infoEl.style.display = "block"; infoEl.innerText = `🔥 חיסכון של ${saved} חודשים!`; }
+        else { infoEl.style.display = "none"; }
     }
     return html + `</table></div>`;
 }
 
 function showAllRows(btn) { const table = btn.closest('table'); table.querySelectorAll('.extra-row').forEach(row => row.style.display = 'table-row'); btn.style.display = 'none'; }
-
 function addItem(type){
     const pre=type==='incomes'?'inc':'exp';
     const name=document.getElementById(pre+'_name').value, val=+document.getElementById(pre+'_val').value;
@@ -219,28 +190,20 @@ function addItem(type){
     document.getElementById(pre+'_name').value=""; document.getElementById(pre+'_val').value="";
     refresh();
 }
-
 function editItem(type, idx){
     const list = type==='incomes' ? incomes : expenses;
     const n = prompt("שם חדש:", list[idx].name), v = prompt("סכום חדש:", list[idx].val);
     if(n !== null && v !== null && !isNaN(v)){ list[idx].name = n; list[idx].val = Number(v); refresh(); }
 }
-
 function deleteItem(type,idx){ (type==='incomes'?incomes:expenses).splice(idx,1); refresh(); }
-
 function renderItemsTable(type){
     const list=type==='incomes'?incomes:expenses;
     const container=document.getElementById(type==='incomes'?'inc_table':'exp_table');
     if(!list.length){ container.innerHTML=""; return; }
     let h=`<table><tr><th>שם</th><th>₪</th><th>פעולה</th></tr>`;
-    list.forEach((item,i)=> h+=`<tr><td>${item.name}</td><td>${item.val.toLocaleString()}</td>
-        <td>
-            <button class="action-btn edit-btn" onclick="editItem('${type}',${i})">✏️</button>
-            <button class="action-btn delete-btn" onclick="deleteItem('${type}',${i})">🗑️</button>
-        </td></tr>`);
+    list.forEach((item,i)=> h+=`<tr><td>${item.name}</td><td>${item.val.toLocaleString()}</td><td><button class="action-btn edit-btn" onclick="editItem('${type}',${i})">✏️</button><button class="action-btn delete-btn" onclick="deleteItem('${type}',${i})">🗑️</button></td></tr>`);
     container.innerHTML=h+"</table>";
 }
-
 function calcLoan(){
     const P=+l_amt.value||0, r=(+l_rt.value/100)/12, n=(+l_yrs.value)*12, extra=+l_extra.value||0;
     loanMonthly = pmt(P, r, n) + extra;
@@ -248,7 +211,6 @@ function calcLoan(){
     document.getElementById('l_tbl_area').innerHTML = createAmortizationTable(P, r, n, extra, 'l_info');
     updateDash(); save();
 }
-
 function calcM(){
     mortMonthly=0; let htmlTables="";
     for(let i=1; i<=3; i++){
@@ -261,21 +223,17 @@ function calcM(){
     document.getElementById('m_tbl_area').innerHTML = htmlTables;
     updateDash(); save();
 }
-
 function updateDash(){
     const tInc=incomes.reduce((a,b)=>a+b.val,0), tExp=expenses.reduce((a,b)=>a+b.val,0), tDebt=loanMonthly+mortMonthly, avail=tInc-tExp-tDebt;
     document.getElementById('dash_stats').innerHTML=`הכנסות: ${tInc.toLocaleString()} ₪ | הוצאות: ${tExp.toLocaleString()} ₪<br>חובות: ${tDebt.toLocaleString()} ₪<br><span style="color:${avail>=0?'#2e7d32':'#d32f2f'}">פנוי: ${avail.toLocaleString()} ₪</span>`;
     if (myChart) { myChart.data.datasets[0].data = [tInc, tExp, tDebt]; myChart.update(); }
     else { const ctx = document.getElementById('budgetChart').getContext('2d'); myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['הכנסות', 'הוצאות', 'חובות'], datasets: [{ data: [tInc, tExp, tDebt], backgroundColor: ['#4caf50', '#ff9800', '#f44336'], borderWidth: 0 }] }, options: { responsive: true, plugins: { legend: { display: false } } } }); }
 }
-
 function save(){
     const data={ incomes,expenses,l:{a:l_amt.value,r:l_rt.value,y:l_yrs.value,e:l_extra.value},m1:{a:m_a1.value,r:m_r1.value,y:m_y1.value,e:m_e1.value},m2:{a:m_a2.value,r:m_r2.value,y:m_y2.value,e:m_e2.value},m3:{a:m_a3.value,r:m_r3.value,y:m_y3.value,e:m_e3.value} };
     localStorage.setItem("financeData", JSON.stringify(data));
 }
-
 function refresh(){ renderItemsTable('incomes'); renderItemsTable('expenses'); updateDash(); save(); }
-
 window.onload=()=>{
     const d=JSON.parse(localStorage.getItem("financeData"));
     if(d){
@@ -285,7 +243,6 @@ window.onload=()=>{
     }
     refresh(); calcLoan(); calcM();
 };
-
 function resetAll(){ if(confirm("לאפס הכל?")){ localStorage.clear(); location.reload(); } }
 </script>
 </body>
