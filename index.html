@@ -143,6 +143,15 @@ footer { text-align: center; padding: 25px; color: #888; font-size: 13px; width:
 let incomes=[], expenses=[], loanMonthly=0, mortMonthly=0;
 let myChart = null;
 
+// רישום Service Worker לעבודה אופליין
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      console.log('SW Registered');
+    }).catch(err => console.log('SW Error', err));
+  });
+}
+
 function showSection(id){ document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function toggleDark(){ document.body.classList.toggle('dark'); }
 function pmt(P,r,n){ if(P<=0||n<=0) return 0; if(r===0) return P/n; return (P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1); }
@@ -160,7 +169,7 @@ function createAmortizationTable(P, r, n, extraPay = 0, infoId = null) {
     for (let i = 1; i <= n * 3; i++) {
         let interest = bal * r;
         let principal = currentPay - interest;
-        if (principal <= 0 && bal > 0) { // הגנה מפני ריבית גבוהה מהחזר
+        if (principal <= 0 && bal > 0) {
             html += `<tr><td colspan="3">ההחזר נמוך מדי לכיסוי הריבית</td></tr>`;
             break;
         }
