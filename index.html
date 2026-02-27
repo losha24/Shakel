@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>שקל לשקל - 7.2</title>
+<title>שקל לשקל - 7.2.1</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2e7d32">
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
@@ -38,13 +38,15 @@ th, td { border-bottom: 1px solid #eee; padding: 12px; text-align: center; }
 .toggle-tbl-btn { background: #607d8b; margin: 15px auto; width: 100%; max-width: 300px; color: white; border-radius: 8px; padding: 12px; border: none; cursor: pointer; }
 .table-content { display: none; margin-top: 10px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
 .table-content.show { display: block; }
+
+/* ההערה הכתומה - מוסתרת כברירת מחדל */
 .extra-info { background: #fff3e0; padding: 15px; border-radius: 10px; margin: 15px auto; font-weight: bold; color: #e65100; text-align: center; border: 2px dashed #ffb74d; max-width: 300px; display: none; }
+
 .dark { background: #1a1a1a; color: #eee; }
 .dark .card { background: #252525; color: #eee; }
 .dark nav { background: #252525; }
 .dark input { background: #333; color: #eee; border-color: #444; }
 footer { padding: 30px; color: #888; font-size: 13px; }
-@media print { nav, header, .logo-container, button, .toggle-tbl-btn, .action-btn { display: none !important; } .table-content { display: block !important; } body { background: white; } .card { box-shadow: none; border: 1px solid #eee; } }
 </style>
 </head>
 <body>
@@ -162,21 +164,39 @@ function pmt(P,r,n){ if(P<=0||n<=0) return 0; if(r===0) return P/n; return (P*r*
 function createAmortizationTable(P, r, n, extraPay = 0, infoId = null) {
     if (!P || n <= 0) return "";
     let basePay = pmt(P, r, n), currentPay = basePay + extraPay, bal = P, actualMonths = 0;
-    let html = `<button class="toggle-tbl-btn" onclick="this.nextElementSibling.classList.toggle('show')">📋 לוח סילוקין</button>
-                <div class="table-content"><table><tr><th>חודש</th><th>תשלום</th><th>יתרה</th></tr>`;
-    for (let i = 1; i <= n * 6; i++) {
-        let interest = bal * r, principal = currentPay - interest;
-        if (principal <= 0 && bal > 0) { html += `<tr><td colspan="3">החזר נמוך מדי</td></tr>`; break; }
-        bal -= principal; actualMonths = i;
-        let hiddenClass = i > 12 ? 'class="extra-row" style="display:none"' : '';
-        html += `<tr ${hiddenClass}><td>${i}</td><td>${currentPay.toFixed(0)}</td><td>${Math.max(0, bal).toFixed(0)}</td></tr>`;
-        if (i === 12 && n > 12) html += `<tr class="show-more-row" onclick="showAllRows(this)"> <td colspan="3">הצג עוד...</td> </tr>`;
+    
+    // חישוב חודשים שנותרו
+    for (let i = 1; i <= n * 10; i++) {
+        let interest = bal * r;
+        let principal = currentPay - interest;
+        if (principal <= 0 && bal > 0) break;
+        bal -= principal;
+        actualMonths = i;
         if (bal <= 0) break;
     }
+
+    // הצגת ההערה במידה ויש חיסכון
     if (infoId) {
-        let infoEl = document.getElementById(infoId), saved = n - actualMonths;
-        if (extraPay > 0 && saved > 0) { infoEl.style.display = "block"; infoEl.innerText = `🔥 חיסכון של ${saved} חודשים!`; }
-        else { infoEl.style.display = "none"; }
+        let infoEl = document.getElementById(infoId);
+        let saved = n - actualMonths;
+        if (extraPay > 0 && saved > 0) {
+            infoEl.style.display = "block";
+            infoEl.innerText = `🔥 חיסכון של ${saved} חודשים!`;
+        } else {
+            infoEl.style.display = "none";
+        }
+    }
+
+    // בניית הטבלה מחדש לצורך התצוגה (מאפסים את היתרה)
+    bal = P;
+    let html = `<button class="toggle-tbl-btn" onclick="this.nextElementSibling.classList.toggle('show')">📋 לוח סילוקין</button>
+                <div class="table-content"><table><tr><th>חודש</th><th>תשלום</th><th>יתרה</th></tr>`;
+    for (let j = 1; j <= actualMonths; j++) {
+        let int = bal * r;
+        bal -= (currentPay - int);
+        let hiddenClass = j > 12 ? 'class="extra-row" style="display:none"' : '';
+        html += `<tr ${hiddenClass}><td>${j}</td><td>${currentPay.toFixed(0)}</td><td>${Math.max(0, bal).toFixed(0)}</td></tr>`;
+        if (j === 12 && actualMonths > 12) html += `<tr class="show-more-row" onclick="showAllRows(this)"> <td colspan="3">הצג עוד...</td> </tr>`;
     }
     return html + `</table></div>`;
 }
