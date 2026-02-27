@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shekel-v7.2.1';
+const CACHE_NAME = 'shekel-v7.3';
 const ASSETS = [
   './',
   './index.html',
