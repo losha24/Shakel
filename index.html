@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>שקל לשקל - 7.2.1</title>
+<title>שקל לשקל - 7.3</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2e7d32">
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
@@ -23,6 +23,8 @@ button.red { background: linear-gradient(45deg,#e53935,#c62828); }
 button.blue { background: linear-gradient(45deg,#1e88e5,#1565c0); }
 button.gray { background: linear-gradient(45deg,#757575,#424242); }
 button.purple { background: linear-gradient(45deg,#8e24aa,#6a1b9a); }
+button.orange { background: linear-gradient(45deg,#fb8c00,#ef6c00); }
+
 .section { display: none; padding: 20px; box-sizing: border-box; }
 .section.active { display: block; }
 .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; width: 100%; box-sizing: border-box; }
@@ -38,8 +40,6 @@ th, td { border-bottom: 1px solid #eee; padding: 12px; text-align: center; }
 .toggle-tbl-btn { background: #607d8b; margin: 15px auto; width: 100%; max-width: 300px; color: white; border-radius: 8px; padding: 12px; border: none; cursor: pointer; }
 .table-content { display: none; margin-top: 10px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
 .table-content.show { display: block; }
-
-/* ההערה הכתומה - מוסתרת כברירת מחדל */
 .extra-info { background: #fff3e0; padding: 15px; border-radius: 10px; margin: 15px auto; font-weight: bold; color: #e65100; text-align: center; border: 2px dashed #ffb74d; max-width: 300px; display: none; }
 
 .dark { background: #1a1a1a; color: #eee; }
@@ -59,11 +59,15 @@ footer { padding: 30px; color: #888; font-size: 13px; }
     <button onclick="showSection('income_section')">💰 תקציב</button>
     <button onclick="showSection('loan_section')">💳 הלוואה</button>
     <button onclick="showSection('mortgage_section')">🏠 משכנתא</button>
+    <button onclick="exportData()" class="orange">📥 גיבוי</button>
+    <button onclick="importData()" class="orange">📤 שחזור</button>
     <button onclick="window.print()" class="purple">📄 PDF</button>
     <button id="installBtn" class="blue" style="display:none;">⬇️ התקנה</button>
     <button onclick="toggleDark()" class="red">🌙 לילה</button>
     <button onclick="resetAll()" class="gray">🧹 איפוס</button>
 </nav>
+
+<input type="file" id="fileInput" style="display:none" onchange="handleFile(this)">
 
 <div id="dashboard" class="section active">
     <div class="card">
@@ -127,6 +131,7 @@ footer { padding: 30px; color: #888; font-size: 13px; }
 let incomes=[], expenses=[], loanMonthly=0, mortMonthly=0;
 let myChart = null;
 
+// Service Worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').then(reg => {
     reg.onupdatefound = () => {
@@ -140,23 +145,18 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// לוגיקת התקנה
 let deferredPrompt;
 const installBtn = document.getElementById('installBtn');
 window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    installBtn.style.display = 'flex';
+    e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'flex';
 });
 installBtn.addEventListener('click', async () => {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt = null;
-        installBtn.style.display = 'none';
-    } else {
-        alert("להוספה למסך הבית:\n1. לחץ על כפתור האפשרויות/שיתוף בדפדפן\n2. בחר 'הוסף למסך הבית'");
-    }
+    if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; installBtn.style.display = 'none'; }
+    else { alert("להוספה למסך הבית:\n1. לחץ שיתוף/אפשרויות\n2. בחר 'הוסף למסך הבית'"); }
 });
 
+// פונקציות עזר וחישוב
 function showSection(id){ document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function toggleDark(){ document.body.classList.toggle('dark'); }
 function pmt(P,r,n){ if(P<=0||n<=0) return 0; if(r===0) return P/n; return (P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1); }
@@ -164,36 +164,22 @@ function pmt(P,r,n){ if(P<=0||n<=0) return 0; if(r===0) return P/n; return (P*r*
 function createAmortizationTable(P, r, n, extraPay = 0, infoId = null) {
     if (!P || n <= 0) return "";
     let basePay = pmt(P, r, n), currentPay = basePay + extraPay, bal = P, actualMonths = 0;
-    
-    // חישוב חודשים שנותרו
     for (let i = 1; i <= n * 10; i++) {
-        let interest = bal * r;
-        let principal = currentPay - interest;
+        let interest = bal * r, principal = currentPay - interest;
         if (principal <= 0 && bal > 0) break;
-        bal -= principal;
-        actualMonths = i;
+        bal -= principal; actualMonths = i;
         if (bal <= 0) break;
     }
-
-    // הצגת ההערה במידה ויש חיסכון
     if (infoId) {
-        let infoEl = document.getElementById(infoId);
-        let saved = n - actualMonths;
-        if (extraPay > 0 && saved > 0) {
-            infoEl.style.display = "block";
-            infoEl.innerText = `🔥 חיסכון של ${saved} חודשים!`;
-        } else {
-            infoEl.style.display = "none";
-        }
+        let infoEl = document.getElementById(infoId), saved = n - actualMonths;
+        if (extraPay > 0 && saved > 0) { infoEl.style.display = "block"; infoEl.innerText = `🔥 חיסכון של ${saved} חודשים!`; }
+        else { infoEl.style.display = "none"; }
     }
-
-    // בניית הטבלה מחדש לצורך התצוגה (מאפסים את היתרה)
     bal = P;
     let html = `<button class="toggle-tbl-btn" onclick="this.nextElementSibling.classList.toggle('show')">📋 לוח סילוקין</button>
                 <div class="table-content"><table><tr><th>חודש</th><th>תשלום</th><th>יתרה</th></tr>`;
     for (let j = 1; j <= actualMonths; j++) {
-        let int = bal * r;
-        bal -= (currentPay - int);
+        let int = bal * r; bal -= (currentPay - int);
         let hiddenClass = j > 12 ? 'class="extra-row" style="display:none"' : '';
         html += `<tr ${hiddenClass}><td>${j}</td><td>${currentPay.toFixed(0)}</td><td>${Math.max(0, bal).toFixed(0)}</td></tr>`;
         if (j === 12 && actualMonths > 12) html += `<tr class="show-more-row" onclick="showAllRows(this)"> <td colspan="3">הצג עוד...</td> </tr>`;
@@ -202,6 +188,8 @@ function createAmortizationTable(P, r, n, extraPay = 0, infoId = null) {
 }
 
 function showAllRows(btn) { const table = btn.closest('table'); table.querySelectorAll('.extra-row').forEach(row => row.style.display = 'table-row'); btn.style.display = 'none'; }
+
+// ניהול נתונים
 function addItem(type){
     const pre=type==='incomes'?'inc':'exp';
     const name=document.getElementById(pre+'_name').value, val=+document.getElementById(pre+'_val').value;
@@ -210,12 +198,13 @@ function addItem(type){
     document.getElementById(pre+'_name').value=""; document.getElementById(pre+'_val').value="";
     refresh();
 }
+function deleteItem(type,idx){ (type==='incomes'?incomes:expenses).splice(idx,1); refresh(); }
 function editItem(type, idx){
     const list = type==='incomes' ? incomes : expenses;
     const n = prompt("שם חדש:", list[idx].name), v = prompt("סכום חדש:", list[idx].val);
     if(n !== null && v !== null && !isNaN(v)){ list[idx].name = n; list[idx].val = Number(v); refresh(); }
 }
-function deleteItem(type,idx){ (type==='incomes'?incomes:expenses).splice(idx,1); refresh(); }
+
 function renderItemsTable(type){
     const list=type==='incomes'?incomes:expenses;
     const container=document.getElementById(type==='incomes'?'inc_table':'exp_table');
@@ -224,6 +213,7 @@ function renderItemsTable(type){
     list.forEach((item,i)=> h+=`<tr><td>${item.name}</td><td>${item.val.toLocaleString()}</td><td><button class="action-btn edit-btn" onclick="editItem('${type}',${i})">✏️</button><button class="action-btn delete-btn" onclick="deleteItem('${type}',${i})">🗑️</button></td></tr>`);
     container.innerHTML=h+"</table>";
 }
+
 function calcLoan(){
     const P=+l_amt.value||0, r=(+l_rt.value/100)/12, n=(+l_yrs.value)*12, extra=+l_extra.value||0;
     loanMonthly = pmt(P, r, n) + extra;
@@ -231,6 +221,7 @@ function calcLoan(){
     document.getElementById('l_tbl_area').innerHTML = createAmortizationTable(P, r, n, extra, 'l_info');
     updateDash(); save();
 }
+
 function calcM(){
     mortMonthly=0; let htmlTables="";
     for(let i=1; i<=3; i++){
@@ -243,17 +234,49 @@ function calcM(){
     document.getElementById('m_tbl_area').innerHTML = htmlTables;
     updateDash(); save();
 }
+
 function updateDash(){
     const tInc=incomes.reduce((a,b)=>a+b.val,0), tExp=expenses.reduce((a,b)=>a+b.val,0), tDebt=loanMonthly+mortMonthly, avail=tInc-tExp-tDebt;
     document.getElementById('dash_stats').innerHTML=`הכנסות: ${tInc.toLocaleString()} ₪ | הוצאות: ${tExp.toLocaleString()} ₪<br>חובות: ${tDebt.toLocaleString()} ₪<br><span style="color:${avail>=0?'#2e7d32':'#d32f2f'}">פנוי: ${avail.toLocaleString()} ₪</span>`;
     if (myChart) { myChart.data.datasets[0].data = [tInc, tExp, tDebt]; myChart.update(); }
     else { const ctx = document.getElementById('budgetChart').getContext('2d'); myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['הכנסות', 'הוצאות', 'חובות'], datasets: [{ data: [tInc, tExp, tDebt], backgroundColor: ['#4caf50', '#ff9800', '#f44336'], borderWidth: 0 }] }, options: { responsive: true, plugins: { legend: { display: false } } } }); }
 }
+
 function save(){
     const data={ incomes,expenses,l:{a:l_amt.value,r:l_rt.value,y:l_yrs.value,e:l_extra.value},m1:{a:m_a1.value,r:m_r1.value,y:m_y1.value,e:m_e1.value},m2:{a:m_a2.value,r:m_r2.value,y:m_y2.value,e:m_e2.value},m3:{a:m_a3.value,r:m_r3.value,y:m_y3.value,e:m_e3.value} };
     localStorage.setItem("financeData", JSON.stringify(data));
 }
+
 function refresh(){ renderItemsTable('incomes'); renderItemsTable('expenses'); updateDash(); save(); }
+
+// --- פונקציות גיבוי ושחזור ---
+function exportData() {
+    const data = localStorage.getItem("financeData");
+    if (!data) return alert("אין נתונים לגיבוי");
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "budget_backup.json"; a.click();
+}
+
+function importData() { document.getElementById('fileInput').click(); }
+
+function handleFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (confirm("שחזור הנתונים ימחק את המידע הקיים. להמשיך?")) {
+                localStorage.setItem("financeData", JSON.stringify(data));
+                location.reload();
+            }
+        } catch (err) { alert("קובץ לא תקין"); }
+    };
+    reader.readAsText(file);
+}
+
 window.onload=()=>{
     const d=JSON.parse(localStorage.getItem("financeData"));
     if(d){
