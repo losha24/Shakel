@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>שקל לשקל - 7.3</title>
+<title>שקל לשקל - 7.3.1</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2e7d32">
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
@@ -61,7 +61,6 @@ footer { padding: 30px; color: #888; font-size: 13px; }
     <button onclick="showSection('mortgage_section')">🏠 משכנתא</button>
     <button onclick="exportData()" class="orange">📥 גיבוי</button>
     <button onclick="importData()" class="orange">📤 שחזור</button>
-    <button onclick="window.print()" class="purple">📄 PDF</button>
     <button id="installBtn" class="blue" style="display:none;">⬇️ התקנה</button>
     <button onclick="toggleDark()" class="red">🌙 לילה</button>
     <button onclick="resetAll()" class="gray">🧹 איפוס</button>
@@ -131,7 +130,6 @@ footer { padding: 30px; color: #888; font-size: 13px; }
 let incomes=[], expenses=[], loanMonthly=0, mortMonthly=0;
 let myChart = null;
 
-// Service Worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').then(reg => {
     reg.onupdatefound = () => {
@@ -145,18 +143,14 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// לוגיקת התקנה
 let deferredPrompt;
 const installBtn = document.getElementById('installBtn');
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'flex';
-});
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'flex'; });
 installBtn.addEventListener('click', async () => {
     if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; installBtn.style.display = 'none'; }
     else { alert("להוספה למסך הבית:\n1. לחץ שיתוף/אפשרויות\n2. בחר 'הוסף למסך הבית'"); }
 });
 
-// פונקציות עזר וחישוב
 function showSection(id){ document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function toggleDark(){ document.body.classList.toggle('dark'); }
 function pmt(P,r,n){ if(P<=0||n<=0) return 0; if(r===0) return P/n; return (P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1); }
@@ -164,22 +158,32 @@ function pmt(P,r,n){ if(P<=0||n<=0) return 0; if(r===0) return P/n; return (P*r*
 function createAmortizationTable(P, r, n, extraPay = 0, infoId = null) {
     if (!P || n <= 0) return "";
     let basePay = pmt(P, r, n), currentPay = basePay + extraPay, bal = P, actualMonths = 0;
-    for (let i = 1; i <= n * 10; i++) {
-        let interest = bal * r, principal = currentPay - interest;
+    
+    // חישוב מחדש של קיצור התקופה
+    for (let i = 1; i <= n * 12; i++) {
+        let interest = bal * r;
+        let principal = currentPay - interest;
         if (principal <= 0 && bal > 0) break;
-        bal -= principal; actualMonths = i;
+        bal -= principal;
+        actualMonths = i;
         if (bal <= 0) break;
     }
+
     if (infoId) {
-        let infoEl = document.getElementById(infoId), saved = n - actualMonths;
-        if (extraPay > 0 && saved > 0) { infoEl.style.display = "block"; infoEl.innerText = `🔥 חיסכון של ${saved} חודשים!`; }
-        else { infoEl.style.display = "none"; }
+        let infoEl = document.getElementById(infoId);
+        let saved = n - actualMonths;
+        if (extraPay > 0 && saved > 0) {
+            infoEl.style.display = "block";
+            infoEl.innerText = `🔥 חיסכון של ${saved} חודשים!`;
+        } else { infoEl.style.display = "none"; }
     }
+
     bal = P;
     let html = `<button class="toggle-tbl-btn" onclick="this.nextElementSibling.classList.toggle('show')">📋 לוח סילוקין</button>
                 <div class="table-content"><table><tr><th>חודש</th><th>תשלום</th><th>יתרה</th></tr>`;
     for (let j = 1; j <= actualMonths; j++) {
-        let int = bal * r; bal -= (currentPay - int);
+        let int = bal * r;
+        bal -= (currentPay - int);
         let hiddenClass = j > 12 ? 'class="extra-row" style="display:none"' : '';
         html += `<tr ${hiddenClass}><td>${j}</td><td>${currentPay.toFixed(0)}</td><td>${Math.max(0, bal).toFixed(0)}</td></tr>`;
         if (j === 12 && actualMonths > 12) html += `<tr class="show-more-row" onclick="showAllRows(this)"> <td colspan="3">הצג עוד...</td> </tr>`;
@@ -189,7 +193,6 @@ function createAmortizationTable(P, r, n, extraPay = 0, infoId = null) {
 
 function showAllRows(btn) { const table = btn.closest('table'); table.querySelectorAll('.extra-row').forEach(row => row.style.display = 'table-row'); btn.style.display = 'none'; }
 
-// ניהול נתונים
 function addItem(type){
     const pre=type==='incomes'?'inc':'exp';
     const name=document.getElementById(pre+'_name').value, val=+document.getElementById(pre+'_val').value;
@@ -198,12 +201,12 @@ function addItem(type){
     document.getElementById(pre+'_name').value=""; document.getElementById(pre+'_val').value="";
     refresh();
 }
-function deleteItem(type,idx){ (type==='incomes'?incomes:expenses).splice(idx,1); refresh(); }
 function editItem(type, idx){
     const list = type==='incomes' ? incomes : expenses;
     const n = prompt("שם חדש:", list[idx].name), v = prompt("סכום חדש:", list[idx].val);
     if(n !== null && v !== null && !isNaN(v)){ list[idx].name = n; list[idx].val = Number(v); refresh(); }
 }
+function deleteItem(type,idx){ (type==='incomes'?incomes:expenses).splice(idx,1); refresh(); }
 
 function renderItemsTable(type){
     const list=type==='incomes'?incomes:expenses;
@@ -247,35 +250,30 @@ function save(){
     localStorage.setItem("financeData", JSON.stringify(data));
 }
 
-function refresh(){ renderItemsTable('incomes'); renderItemsTable('expenses'); updateDash(); save(); }
-
-// --- פונקציות גיבוי ושחזור ---
 function exportData() {
     const data = localStorage.getItem("financeData");
     if (!data) return alert("אין נתונים לגיבוי");
     const blob = new Blob([data], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = "budget_backup.json"; a.click();
+    a.href = URL.createObjectURL(blob); a.download = "budget_backup.json"; a.click();
 }
 
 function importData() { document.getElementById('fileInput').click(); }
-
 function handleFile(input) {
-    const file = input.files[0];
-    if (!file) return;
+    const file = input.files[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = (e) => {
         try {
             const data = JSON.parse(e.target.result);
             if (confirm("שחזור הנתונים ימחק את המידע הקיים. להמשיך?")) {
-                localStorage.setItem("financeData", JSON.stringify(data));
-                location.reload();
+                localStorage.setItem("financeData", JSON.stringify(data)); location.reload();
             }
         } catch (err) { alert("קובץ לא תקין"); }
     };
     reader.readAsText(file);
 }
+
+function refresh(){ renderItemsTable('incomes'); renderItemsTable('expenses'); updateDash(); save(); }
 
 window.onload=()=>{
     const d=JSON.parse(localStorage.getItem("financeData"));
